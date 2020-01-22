@@ -1,4 +1,3 @@
-# Write your code here!
 def game_hash 
   game_hash = {:home=> 
                 {:team_name=> "Brooklyn Nets" ,
@@ -123,63 +122,57 @@ def game_hash
               }
 end
 
-def num_points_scored(name)
+def get_player_stat_hash # sets all ten players' names as keys equal to their stats used in a number of methods below
   consolidated_player_list = game_hash[:home][:players] + game_hash[:away][:players]
-  consolidated_player_list
   player_stat_hash = {}
-
   consolidated_player_list.each do |player|
     key = player[:player_name]
     player_stat_hash[key] = player
   end
+  player_stat_hash
+end
 
-  points = 0
-  player_stat_hash.each do |player|
-    points = player[1][:points] if player[0] == name
+def get_player_names_array # creates array of ten players' names used in a number of methods below
+  player_stat_hash = get_player_stat_hash
+  player_names_array = []
+  player_names_array = player_stat_hash.map do |player|
+    player[0]
   end
-  points
+  player_names_array
+  end
+
+def get_player_stat(name, stat)
+   player_stat_hash = get_player_stat_hash
+   player_stat = 0
+    player_stat_hash.each do |player|
+      player_stat = player[1][stat] if player[0] == name
+    end
+    player_stat
+  end
+
+def num_points_scored(name)
+  stat = :points
+  get_player_stat(name, stat)
 end
 
 def shoe_size(name)
-  consolidated_player_list = game_hash[:home][:players] + game_hash[:away][:players]
-  consolidated_player_list
-  player_stat_hash = {}
-
-  consolidated_player_list.each do |player|
-    key = player[:player_name]
-    player_stat_hash[key] = player
-  end
-
-  shoe = 0
-  player_stat_hash.each do |player|
-    shoe = player[1][:shoe] if player[0] == name
-  end
-  shoe
+  stat = :shoe
+  get_player_stat(name, stat)
 end
 
 def player_stats(name)
-  consolidated_player_list = game_hash[:home][:players] + game_hash[:away][:players]
-  consolidated_player_list
-  player_stat_hash = {}
-
-  consolidated_player_list.each do |player|
-    key = player[:player_name]
-    player_stat_hash[key] = player
-  end
-
+  player_stat_hash = get_player_stat_hash
   stats = {}
     player_stat_hash.each do |player|
     stats = player[1] if player[0] == name
   end
-  stats.delete(:player_name)
+  stats.delete(:player_name) #removes redundant player name
   stats
 end
 
 def team_names
-  names = []
-  names << game_hash[:home][:team_name]
-  names << game_hash[:away][:team_name]
-  names
+ [ game_hash[:home][:team_name],
+   game_hash[:away][:team_name] ]
 end
 
 def team_colors(team_name)
@@ -193,36 +186,21 @@ end
 
 def player_numbers(team_name)
   jersey_array = []
-  if game_hash[:home][:team_name].include?(team_name)
-    game_hash[:home][:players].reduce ({}) do |memo, pair|
-      jersey_array << pair[:number]
-      memo
+  if game_hash[:home][:team_name] == team_name
+    jersey_array = game_hash[:home][:players].map do |player|
+       player[:number]
     end
   else
-    game_hash[:away][:players].reduce ({}) do |memo, pair|
-      jersey_array << pair[:number]
-      memo
+    jersey_array = game_hash[:away][:players].map do |player|
+       player[:number]
     end
   end
   jersey_array
 end
 
 def big_shoe_rebounds
-  consolidated_player_list = game_hash[:home][:players] + game_hash[:away][:players]
-  consolidated_player_list
-  player_stat_hash = {}
-
-  consolidated_player_list.each do |player|
-    key = player[:player_name]
-    player_stat_hash[key] = player
-  end
-
-  player_names_array = []
-  player_stat_hash.reduce ({}) do |memo, pair|
-    player_names_array << pair[0]
-  memo
-  end
-
+  player_stat_hash = get_player_stat_hash
+  player_names_array = get_player_names_array
   player_big_shoe = player_names_array[0]
   player_names_array.each do |name|
     player_big_shoe = name if shoe_size(name) > shoe_size(player_big_shoe)
@@ -230,78 +208,24 @@ def big_shoe_rebounds
   player_stat_hash[player_big_shoe][:rebounds]
  end
  
- # method below supports "most_points_scored" method
- 
- def points(name)
-   
-   consolidated_player_list = game_hash[:home][:players] + game_hash[:away][:players]
-   consolidated_player_list
-   player_stat_hash = {}
-
-   consolidated_player_list.each do |player|
-     key = player[:player_name]
-     player_stat_hash[key] = player
-   end
-
-    points = 0
-    player_stat_hash.each do |player|
-      points = player[1][:points] if player[0] == name
-    end
-  points
-end
- 
- def most_points_scored
-   consolidated_player_list = game_hash[:home][:players] + game_hash[:away][:players]
-   consolidated_player_list
-   player_stat_hash = {}
-
-  consolidated_player_list.each do |player|
-    key = player[:player_name]
-    player_stat_hash[key] = player
-  end
-   player_names_array = []
-   player_stat_hash.reduce ({}) do |memo, pair|
-    player_names_array << pair[0]
-    memo
-   end
-
-   player_most_points = player_names_array[0]
+def most_points_scored
+  player_stat_hash = get_player_stat_hash
+  player_names_array = get_player_names_array
+  player_most_points = player_names_array[0]
    player_names_array.each do |name|
-     player_most_points = name if points(name) > points(player_most_points)
+     player_most_points = name if get_player_stat(name, :points) > get_player_stat(player_most_points, :points)
    end
   player_most_points
  end
 
 def winning_team
-  
-  home_total = 0
-  away_total = 0
-  
-  #evaluate home team total
-  home_player_list = game_hash[:home][:players]
-  home_player_stat_hash = {}
-  home_player_list.each do |player|
-    key = player[:player_name]
-    home_player_stat_hash[key] = player
+  player_stat_hash = get_player_stat_hash
+  #creates array of ten players' points
+  points = player_stat_hash.map do |player|
+   player[1][:points]
   end
-
-  home_player_stat_hash.each do |player|
-    home_total += player[1][:points]
-  end
-  home_total
-
-  #evaluate away team total
-  away_player_list = game_hash[:away][:players]
-  away_player_stat_hash = {}
-  away_player_list.each do |player|
-    key = player[:player_name]
-    away_player_stat_hash[key] = player
-  end
-
-  away_player_stat_hash.each do |player|
-    away_total += player[1][:points]
-  end
-  away_total
+  home_total = (points.slice(0..4)).sum
+  away_total = (points.slice(5..9)).sum
   # compare home versus away total
   if home_total > away_total
   winner = game_hash[:home][:team_name]
@@ -312,75 +236,30 @@ def winning_team
 end
 
 def player_with_longest_name
-consolidated_player_list = game_hash[:home][:players] + game_hash[:away][:players]
-   consolidated_player_list
-   player_stat_hash = {}
-
-  consolidated_player_list.each do |player|
-    key = player[:player_name]
-    player_stat_hash[key] = player
-  end
-   player_names_array = []
-   player_stat_hash.reduce ({}) do |memo, pair|
-    player_names_array << pair[0]
-    memo
-   end
-
-   player_longest_name = player_names_array[0]
+  player_stat_hash = get_player_stat_hash
+  player_names_array = get_player_names_array
+  player_longest_name = player_names_array[0]
    player_names_array.each do |name|
      player_longest_name = name if name.size > player_longest_name.size
    end
   player_longest_name
 end
 
-def steals(name)
-   #supports most_steals
-   
-   consolidated_player_list = game_hash[:home][:players] + game_hash[:away][:players]
-   consolidated_player_list
-   player_stat_hash = {}
-
-   consolidated_player_list.each do |player|
-     key = player[:player_name]
-     player_stat_hash[key] = player
-   end
-
-    steals = 0
-    player_stat_hash.each do |player|
-      steals = player[1][:steals] if player[0] == name
-    end
-  steals
-end
-
 def most_steals
-   consolidated_player_list = game_hash[:home][:players] + game_hash[:away][:players]
-   consolidated_player_list
-   player_stat_hash = {}
-
-  consolidated_player_list.each do |player|
-    key = player[:player_name]
-    player_stat_hash[key] = player
-  end
-   player_names_array = []
-   player_stat_hash.reduce ({}) do |memo, pair|
-    player_names_array << pair[0]
-    memo
-   end
-
-   player_most_steals = player_names_array[0]
+  player_stat_hash = get_player_stat_hash
+  player_names_array = get_player_names_array
+  player_most_steals = player_names_array[0]
    player_names_array.each do |name|
-     player_most_steals = name if steals(name) > steals(player_most_steals)
+     player_most_steals = name if get_player_stat(name, :steals) > get_player_stat(player_most_steals, :steals)
    end
   player_most_steals
  end
 
-
 def long_name_steals_a_ton?
-  long_name = player_with_longest_name
-   if long_name == most_steals
-     true
-   else
-     false
-   end
+  if player_with_longest_name == most_steals
+    true
+  else
+    false
+  end
 end
 
